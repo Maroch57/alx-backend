@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
-""" Class LIFOCache that inherits from BaseCaching and is a caching system
+""" Class LRUCache that inherits from BaseCaching and is a caching system
 """
+from collections import deque
 BaseCaching = __import__('base_caching').BaseCaching
 
 
-class LIFOCache(BaseCaching):
-    """ FIFO Cache Class """
+class LRUCache(BaseCaching):
+    """ LRU Cache Class """
     def __init__(self):
         super().__init__()
         self.max_items = BaseCaching.MAX_ITEMS
-        self.max_items = BaseCaching.MAX_ITEMS
-        self.last_put = None
+        self.queue = deque()
         self.size = 0
 
     def put(self, key, item):
@@ -22,19 +22,23 @@ class LIFOCache(BaseCaching):
 
             if key in self.cache_data:
                 self.cache_data[key] = item
-                self.last_put = key
+                self.queue.remove(key)
+                self.queue.append(key)
                 return
 
             if self.size > self.max_items:
-                self.cache_data.pop(self.last_put)
-                print(f"DISCARD: {self.last_put}")
+                old = self.queue.popleft()
+                self.cache_data.pop(old)
+                print(f"DISCARD: {old}")
 
             self.cache_data[key] = item
-            self.last_put = key
+            self.queue.append(key)
 
     def get(self, key):
         """ Return the value in self.cache_data linked to key """
         if key and key in self.cache_data:
+            self.queue.remove(key)
+            self.queue.append(key)
             return (self.cache_data[key])
 
         return (None)
